@@ -10,7 +10,7 @@ function App() {
   const [result, setResult] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/unsafe-zones")
+    fetch("https://safeher-project.onrender.com/unsafe-zones")
       .then((response) => response.json())
       .then((data) => {
         setZones(data.unsafe_zones);
@@ -23,7 +23,7 @@ function App() {
   const mapCenter = [28.63, 77.22];
 
   const handleCheck = () => {
-    fetch("http://localhost:8000/check-anomaly", {
+    fetch("https://safeher-project.onrender.com/check-anomaly", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

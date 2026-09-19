@@ -1,16 +1,69 @@
-# React + Vite
+# 🆘 SafeHer — AI-Powered Personal Safety Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+SafeHer is a prototype safety application that uses **unsupervised machine learning** to detect abnormal personal movement patterns and map city-wide unsafe zones — enabling faster, automatic emergency response instead of relying on manual SOS alerts.
 
-Currently, two official plugins are available:
+🔗 **Live Demo:** [safeher-project-seven.vercel.app](https://safeher-project-seven.vercel.app)  
+🔗 **Backend API:** [safeher-project.onrender.com](https://safeher-project.onrender.com)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 📌 Problem Statement
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Most personal safety apps rely on the victim manually pressing an SOS button — but in real emergencies, this is often not possible. SafeHer flips this model: it learns a person's normal movement pattern and automatically detects deviations that may indicate distress, without requiring any manual action.
 
-## Expanding the Oxlint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- **Personal Anomaly Detection** — Uses Isolation Forest and Local Outlier Factor (LOF) to learn a user's normal movement baseline and flag unusual deviations (unfamiliar location, unusual stop duration, off-hours activity).
+- **City Unsafe Zone Mapping** — Uses DBSCAN clustering on incident report data to identify genuine high-risk zones, distinguishing them from random one-off complaints (noise).
+- **Time-of-Day Risk Analysis** — Identifies peak risk hours for each unsafe zone.
+- **Interactive Map Dashboard** — Built with React and Leaflet, showing live unsafe zones on an OpenStreetMap-based map.
+- **Real-Time Anomaly Check** — A live form that checks any location/speed input against the trained model and returns an instant result.
+- **PCA vs t-SNE Visualization** — Compares linear and non-linear dimensionality reduction techniques to visualize how anomalies separate from normal patterns.
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Machine Learning | Python, scikit-learn (Isolation Forest, LOF, DBSCAN, PCA, t-SNE) |
+| Backend | FastAPI |
+| Frontend | React (Vite), Leaflet |
+| Deployment | Render (backend), Vercel (frontend) |
+
+## 📊 Model Performance
+
+On synthetic validation data:
+- **Recall:** 100% (all injected anomalies correctly detected)
+- **Precision:** ~94.7% (minimal false alarms)
+
+## 📁 Project Structure
+safepath/
+├── generate_data.py # Synthetic movement data generator
+├── generate_incidents.py # Synthetic incident report generator
+├── detect_anomaly.py # Isolation Forest model
+├── detect_anomaly_lof.py # LOF model (comparison)
+├── cluster_zones.py # DBSCAN clustering
+├── zone_risk_analysis.py # Time-of-day risk analysis
+├── pca_tsne_comparison.py # PCA vs t-SNE visualization
+├── save_model.py # Saves trained model for backend use
+├── main.py # FastAPI backend
+└── frontend/ # React dashboard
+
+## 🚀 Running Locally
+
+**Backend:**
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## ⚠️ Note on Data
+
+This project uses **synthetic (simulated) data** for both movement patterns and incident reports, as real personal safety data is not ethically available for public use. The system is a working prototype demonstrating the underlying methodology, validated against known injected anomalies.
+

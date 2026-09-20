@@ -90,6 +90,7 @@ def send_alert_sms(latitude, longitude):
     print(message)
     print("=" * 50)
     
+    
     # ===== Real Twilio integration would look like this: =====
     # from twilio.rest import Client
     # client = Client(ACCOUNT_SID, AUTH_TOKEN)
@@ -98,3 +99,8 @@ def send_alert_sms(latitude, longitude):
     #     from_=TWILIO_PHONE_NUMBER,
     #     to=FAMILY_CONTACT_NUMBER
     # )
+    
+    @app.get("/pca-tsne-data")
+    def get_pca_tsne_data():
+        df = pd.read_csv("pca_tsne_data.csv")
+        return {"points": df.to_dict(orient="records")}

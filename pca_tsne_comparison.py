@@ -48,5 +48,9 @@ axes[1].legend()
 plt.tight_layout()
 plt.savefig("pca_vs_tsne.png")
 plt.show()
+# Save PCA and t-SNE results to CSV so the backend/frontend can use them
+output_df = df[["pca_x", "pca_y", "tsne_x", "tsne_y", "is_anomaly"]]
+output_df.to_csv("pca_tsne_data.csv", index=False)
+print("PCA/t-SNE data saved to pca_tsne_data.csv")
 
 print("Comparison graph saved as pca_vs_tsne.png")

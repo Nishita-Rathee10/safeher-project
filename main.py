@@ -23,14 +23,14 @@ def home():
 def get_unsafe_zones():
     # Load our clustered incident data
     df = pd.read_csv("incident_data_with_clusters.csv")
-    
+
     # Remove noise points, we only want real zones
     zones_only = df[df["cluster"] != -1]
-    
+
     zone_list = []
     for cluster_id in sorted(zones_only["cluster"].unique()):
         zone_data = zones_only[zones_only["cluster"] == cluster_id]
-        
+
         zone_info = {
             "zone_id": int(cluster_id),
             "incident_count": len(zone_data),
@@ -39,33 +39,27 @@ def get_unsafe_zones():
             "center_longitude": float(zone_data["longitude"].mean()),
         }
         zone_list.append(zone_info)
-    
+
     return {"unsafe_zones": zone_list}
 
-
-#new code
 # Load the saved model once, when the server starts
 saved_model = joblib.load("anomaly_model.pkl")
-
-# We need a way to receive data from the frontend - this defines the shape of that data
-from pydantic import BaseModel
 
 class MovementPoint(BaseModel):
     latitude: float
     longitude: float
     speed: float
 
-# POST endpoint - frontend sends a new movement point, we check if it's an anomaly
 @app.post("/check-anomaly")
 def check_anomaly(point: MovementPoint):
     input_data = [[point.latitude, point.longitude, point.speed]]
     prediction = saved_model.predict(input_data)
     is_anomaly = bool(prediction[0] == -1)
-    
+
     # If anomaly detected, simulate sending an SMS alert
     if is_anomaly:
         send_alert_sms(point.latitude, point.longitude)
-    
+
     return {
         "is_anomaly": is_anomaly,
         "message": "Unusual movement detected!" if is_anomaly else "Movement looks normal"
@@ -84,13 +78,12 @@ def send_alert_sms(latitude, longitude):
         f"Location: https://maps.google.com/?q={latitude},{longitude}\n"
         f"Please check on your contact immediately."
     )
-    
+
     print("=" * 50)
     print("EMERGENCY SMS ALERT TRIGGERED")
     print(message)
     print("=" * 50)
-    
-    
+
     # ===== Real Twilio integration would look like this: =====
     # from twilio.rest import Client
     # client = Client(ACCOUNT_SID, AUTH_TOKEN)
@@ -99,8 +92,9 @@ def send_alert_sms(latitude, longitude):
     #     from_=TWILIO_PHONE_NUMBER,
     #     to=FAMILY_CONTACT_NUMBER
     # )
-    
-    @app.get("/pca-tsne-data")
-    def get_pca_tsne_data():
-        df = pd.read_csv("pca_tsne_data.csv")
-        return {"points": df.to_dict(orient="records")}
+
+
+@app.get("/pca-tsne-data")
+def get_pca_tsne_data():
+    df = pd.read_csv("pca_tsne_data.csv")
+    return {"points": df.to_dict(orient="records")}

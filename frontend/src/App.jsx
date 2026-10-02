@@ -9,6 +9,8 @@ function App() {
   const [speed, setSpeed] = useState("");
   const [result, setResult] = useState(null);
   const [pcaTsneData, setPcaTsneData] = useState([]);
+  const [gracePeriodActive, setGracePeriodActive] = useState(false);
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
     fetch("https://safeher-project.onrender.com/unsafe-zones")
@@ -30,6 +32,23 @@ function App() {
       });
   }, []);
 
+  // Runs every second while the grace period is active, counting down
+  useEffect(() => {
+    if (!gracePeriodActive) return;
+
+    if (countdown === 0) {
+      setGracePeriodActive(false);
+      setResult({ is_anomaly: true, message: "No response received. Alert sent to emergency contacts!" });
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown(countdown - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [gracePeriodActive, countdown]);
+
   const mapCenter = [28.63, 77.22];
 
   const handleCheck = () => {
@@ -45,10 +64,20 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         setResult(data);
+        if (data.is_anomaly) {
+          setGracePeriodActive(true);
+          setCountdown(10);
+        }
       })
       .catch((error) => {
         console.error("Error checking anomaly:", error);
       });
+  };
+
+  // Called when the user confirms they are okay, cancelling the alert
+  const handleImOkay = () => {
+    setGracePeriodActive(false);
+    setResult({ is_anomaly: false, message: "Great, glad you're safe! Alert cancelled." });
   };
 
   // Converts data points into SVG circle positions, scaled to fit a 300x300 box
@@ -141,9 +170,21 @@ function App() {
         </button>
       </div>
 
-      {result && (
+      {gracePeriodActive && (
+        <div className="result-box result-anomaly">
+          <strong>⚠️ Unusual movement detected!</strong>
+          <br />
+          Are you okay? Alerting your emergency contacts in {countdown} seconds...
+          <br />
+          <button className="check-button" style={{ marginTop: "10px" }} onClick={handleImOkay}>
+            I'm Okay
+          </button>
+        </div>
+      )}
+
+      {!gracePeriodActive && result && (
         <div className={`result-box ${result.is_anomaly ? "result-anomaly" : "result-normal"}`}>
-          <strong>{result.is_anomaly ? "⚠️ Anomaly Detected!" : "✅ Normal"}</strong>
+          <strong>{result.is_anomaly ? "⚠️ Alert Sent!" : "✅ All Good"}</strong>
           <br />
           {result.message}
         </div>

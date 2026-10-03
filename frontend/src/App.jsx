@@ -32,7 +32,6 @@ function App() {
       });
   }, []);
 
-  // Runs every second while the grace period is active, counting down
   useEffect(() => {
     if (!gracePeriodActive) return;
 
@@ -74,13 +73,11 @@ function App() {
       });
   };
 
-  // Called when the user confirms they are okay, cancelling the alert
   const handleImOkay = () => {
     setGracePeriodActive(false);
     setResult({ is_anomaly: false, message: "Great, glad you're safe! Alert cancelled." });
   };
 
-  // Converts data points into SVG circle positions, scaled to fit a 300x300 box
   const renderScatterPlot = (data, xKey, yKey) => {
     if (data.length === 0) return null;
 
@@ -114,6 +111,26 @@ function App() {
     <div className="dashboard-container">
       <h1 className="dashboard-title">SafeHer</h1>
       <p className="dashboard-subtitle">AI-Powered Personal Safety Dashboard</p>
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon">🗺️</div>
+          <div className="stat-value">{zones.length}</div>
+          <div className="stat-label">Unsafe Zones Mapped</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">📍</div>
+          <div className="stat-value">
+            {zones.reduce((sum, zone) => sum + zone.incident_count, 0)}
+          </div>
+          <div className="stat-label">Incidents Analyzed</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">🧠</div>
+          <div className="stat-value">3</div>
+          <div className="stat-label">ML Techniques Used</div>
+        </div>
+      </div>
 
       <h2 className="section-heading">Unsafe Zones Map</h2>
       <div className="map-wrapper">

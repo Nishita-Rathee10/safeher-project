@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, Marker, useMapEvents } from "react-leaflet";
-import L from "leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents, useMap } from "react-leaflet";
 import "./App.css";
 
 // This component listens for map clicks and reports the coordinates back
@@ -10,6 +9,17 @@ function ClickHandler({ onMapClick }) {
       onMapClick(e.latlng.lat, e.latlng.lng);
     },
   });
+  return null;
+}
+
+// This component automatically pans the map to a new point when it changes
+function FlyToPoint({ point }) {
+  const map = useMap();
+  useEffect(() => {
+    if (point) {
+      map.flyTo(point, map.getZoom());
+    }
+  }, [point]);
   return null;
 }
 
@@ -62,7 +72,6 @@ function App() {
 
   const mapCenter = [28.63, 77.22];
 
-  // Runs the anomaly check using whatever lat/lon/speed values are currently set
   const runCheck = (lat, lon, spd) => {
     fetch("https://safeher-project.onrender.com/check-anomaly", {
       method: "POST",
@@ -90,14 +99,12 @@ function App() {
     runCheck(latitude, longitude, speed);
   };
 
-  // Called when the user clicks on the map - fills the form with those coordinates
   const handleMapClick = (lat, lng) => {
     setLatitude(lat.toFixed(5));
     setLongitude(lng.toFixed(5));
     setClickedPoint([lat, lng]);
   };
 
-  // Preset scenarios for quick demo purposes
   const runScenario = (lat, lon, spd) => {
     setLatitude(lat);
     setLongitude(lon);
@@ -180,6 +187,7 @@ function App() {
             attribution='&copy; OpenStreetMap contributors'
           />
           <ClickHandler onMapClick={handleMapClick} />
+          <FlyToPoint point={clickedPoint} />
           {zones.map((zone) => (
             <CircleMarker
               key={zone.zone_id}

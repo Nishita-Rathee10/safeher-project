@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Marker, useMapEvents } from "react-leaflet";
+import L from "leaflet";
 import "./App.css";
+
+// This component listens for map clicks and reports the coordinates back
+function ClickHandler({ onMapClick }) {
+  useMapEvents({
+    click: (e) => {
+      onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
 
 function App() {
   const [zones, setZones] = useState([]);
@@ -11,6 +22,7 @@ function App() {
   const [pcaTsneData, setPcaTsneData] = useState([]);
   const [gracePeriodActive, setGracePeriodActive] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const [clickedPoint, setClickedPoint] = useState(null);
 
   useEffect(() => {
     fetch("https://safeher-project.onrender.com/unsafe-zones")
@@ -50,14 +62,15 @@ function App() {
 
   const mapCenter = [28.63, 77.22];
 
-  const handleCheck = () => {
+  // Runs the anomaly check using whatever lat/lon/speed values are currently set
+  const runCheck = (lat, lon, spd) => {
     fetch("https://safeher-project.onrender.com/check-anomaly", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
-        speed: parseFloat(speed),
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lon),
+        speed: parseFloat(spd),
       }),
     })
       .then((response) => response.json())
@@ -71,6 +84,26 @@ function App() {
       .catch((error) => {
         console.error("Error checking anomaly:", error);
       });
+  };
+
+  const handleCheck = () => {
+    runCheck(latitude, longitude, speed);
+  };
+
+  // Called when the user clicks on the map - fills the form with those coordinates
+  const handleMapClick = (lat, lng) => {
+    setLatitude(lat.toFixed(5));
+    setLongitude(lng.toFixed(5));
+    setClickedPoint([lat, lng]);
+  };
+
+  // Preset scenarios for quick demo purposes
+  const runScenario = (lat, lon, spd) => {
+    setLatitude(lat);
+    setLongitude(lon);
+    setSpeed(spd);
+    setClickedPoint([lat, lon]);
+    runCheck(lat, lon, spd);
   };
 
   const handleImOkay = () => {
@@ -133,6 +166,9 @@ function App() {
       </div>
 
       <h2 className="section-heading">Unsafe Zones Map</h2>
+      <p style={{ color: "#9ca3af", marginBottom: "10px" }}>
+        Click anywhere on the map to test that location in the anomaly checker below.
+      </p>
       <div className="map-wrapper">
         <MapContainer
           center={mapCenter}
@@ -143,6 +179,7 @@ function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; OpenStreetMap contributors'
           />
+          <ClickHandler onMapClick={handleMapClick} />
           {zones.map((zone) => (
             <CircleMarker
               key={zone.zone_id}
@@ -159,10 +196,29 @@ function App() {
               </Popup>
             </CircleMarker>
           ))}
+          {clickedPoint && (
+            <CircleMarker
+              center={clickedPoint}
+              radius={8}
+              pathOptions={{ color: "#5b8def", fillColor: "#5b8def", fillOpacity: 0.8 }}
+            >
+              <Popup>Selected point for testing</Popup>
+            </CircleMarker>
+          )}
         </MapContainer>
       </div>
 
       <h2 className="section-heading">Check Movement Anomaly</h2>
+
+      <div style={{ display: "flex", gap: "10px", marginBottom: "15px", flexWrap: "wrap" }}>
+        <button className="check-button" onClick={() => runScenario(28.62, 77.21, 20)}>
+          🚶 Normal Day
+        </button>
+        <button className="check-button" onClick={() => runScenario(28.75, 77.35, 0)}>
+          🌙 Suspicious Night
+        </button>
+      </div>
+
       <div className="check-form">
         <input
           type="number"
